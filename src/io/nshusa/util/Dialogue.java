@@ -48,7 +48,7 @@ public final class Dialogue {
 						Desktop.getDesktop().open(dir);
 					}
 				} catch (Exception ex) {
-					Dialogue.showException("Error while trying to view image on desktop.", ex);
+					Dialogue.showException("Error while trying to view image on desktop.", ex).showAndWait();
 				}
 			}
 
@@ -109,8 +109,6 @@ public final class Dialogue {
 			setTitle("Warning");
 			setHeaderText(null);
 			setContentText(message);
-			
-			showAndWait();
 		}
 
 	}
@@ -191,8 +189,6 @@ public final class Dialogue {
 	            expContent.add(textArea, 0, 1);
 
 	            getDialogPane().setExpandableContent(expContent);
-
-	            showAndWait();
 	      }
 
 	}

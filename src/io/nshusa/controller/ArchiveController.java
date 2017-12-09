@@ -533,7 +533,7 @@ public final class ArchiveController implements Initializable {
 						int hash = HashUtils.nameToHash(selectedFile.getName());
 
 						if (archive.contains(hash)) {
-							Platform.runLater(() -> Dialogue.showWarning(String.format("archive=%s already contains a file named %s use replace instead.", wrapper.getName(), selectedFile.getName())));
+							Platform.runLater(() -> Dialogue.showWarning(String.format("archive=%s already contains a file named %s use replace instead.", wrapper.getName(), selectedFile.getName())).showAndWait());
 							return false;
 						}
 					}

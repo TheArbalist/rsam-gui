@@ -141,7 +141,7 @@
                               <Tooltip text="Use this button to rest the program." />
                            </tooltip>
                         </Button>
-                        <Button fx:id="defragBtn" mnemonicParsing="false" text="Defrag">
+                        <Button fx:id="defragBtn" mnemonicParsing="false" onAction="#defragment" text="Defrag">
                            <HBox.margin>
                               <Insets right="5.0" top="5.0" />
                            </HBox.margin>

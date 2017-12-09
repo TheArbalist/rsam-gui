@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,6 @@ import io.nshusa.model.StoreEntryWrapper;
 import io.nshusa.rsam.FileStore;
 import io.nshusa.rsam.IndexedFileSystem;
 import io.nshusa.rsam.binary.Archive;
-import io.nshusa.rsam.util.CompressionUtil;
 import io.nshusa.rsam.util.HashUtils;
 import io.nshusa.util.Dialogue;
 import io.nshusa.util.GZipUtils;
@@ -406,7 +406,7 @@ public final class StoreController implements Initializable {
 
 				} catch (IOException e) {
 					e.printStackTrace();
-					Platform.runLater(() -> Dialogue.showWarning(String.format("Could not locate crc file for store=%d file=%d", storeId, fileId)));
+					Platform.runLater(() -> Dialogue.showWarning(String.format("Could not locate crc file for store=%d file=%d", storeId, fileId)).showAndWait());
 				}
 				return null;
 			}
@@ -446,7 +446,7 @@ public final class StoreController implements Initializable {
 			cache = IndexedFileSystem.init(selectedDirectory.toPath());
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			new Dialogue.WarningMessage(String.format("Could not find cache at path=%s", selectedDirectory.toPath().toString()));
+			Dialogue.showWarning(String.format("Could not find cache at path=%s", selectedDirectory.toPath().toString())).showAndWait();
 			return;
 		}
 
@@ -567,7 +567,7 @@ public final class StoreController implements Initializable {
 			ByteBuffer dataBuffer = store.readFile(wrapper.getId());
 
 			if (dataBuffer == null) {
-				Dialogue.showWarning(String.format("Failed to open archive=%s", wrapper.getName()));
+				Dialogue.showWarning(String.format("Failed to open archive=%s", wrapper.getName())).showAndWait();
 				return;
 			}
 
@@ -606,7 +606,7 @@ public final class StoreController implements Initializable {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Dialogue.showWarning(String.format("Failed to read archive=%s", wrapper.getName()));
+			Dialogue.showWarning(String.format("Failed to read archive=%s", wrapper.getName())).showAndWait();
 		}
 
 	}
@@ -654,7 +654,7 @@ public final class StoreController implements Initializable {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Dialogue.showWarning("Could not read archive.");
+			Dialogue.showWarning("Could not read archive.").showAndWait();
 		}
 
 	}
@@ -687,10 +687,10 @@ public final class StoreController implements Initializable {
 			String name = result.get();
 
 			if (name.isEmpty()) {
-				Dialogue.showWarning("Name cannot be empty");
+				Dialogue.showWarning("Name cannot be empty").showAndWait();
 				return;
 			} else if (name.length() >= 20) {
-				Dialogue.showWarning("Name must be shorter than 20 characters");
+				Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
 				return;
 			}
 
@@ -747,10 +747,10 @@ public final class StoreController implements Initializable {
 			String name = result.get();
 
 			if (name.isEmpty()) {
-				Dialogue.showWarning("Name cannot be empty");
+				Dialogue.showWarning("Name cannot be empty").showAndWait();
 				return;
 			} else if (name.length() >= 20) {
-				Dialogue.showWarning("Name must be shorter than 20 characters");
+				Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
 				return;
 			}
 
@@ -815,18 +815,18 @@ public final class StoreController implements Initializable {
 		String fileName = fileNameResult.get();
 
 			if (displayName.isEmpty()) {
-				Dialogue.showWarning("Display name cannot be empty");
+				Dialogue.showWarning("Display name cannot be empty").showAndWait();
 				return;
 			} else if (displayName.length() >= 20) {
-				Dialogue.showWarning("Display name must be shorter than 20 characters");
+				Dialogue.showWarning("Display name must be shorter than 20 characters").showAndWait();
 				return;
 			}
 
 		if (fileName.isEmpty()) {
-			Dialogue.showWarning("File name name cannot be empty");
+			Dialogue.showWarning("File name name cannot be empty").showAndWait();
 			return;
 		} else if (fileName.length() >= 20) {
-			Dialogue.showWarning("File name name must be shorter than 20 characters");
+			Dialogue.showWarning("File name name must be shorter than 20 characters").showAndWait();
 			return;
 		}
 			
@@ -892,12 +892,12 @@ public final class StoreController implements Initializable {
 
 		for (File file : files) {
 			if (!file.getName().endsWith(".gz")) {
-				Dialogue.showWarning("You can only select gzipped files.");
+				Dialogue.showWarning("You can only select gzipped files.").showAndWait();
 				return;
 			}
 
 			if (!GZipUtils.isGZipped(file)) {
-				Dialogue.showWarning(String.format("File=%s is not a valid gzipped file.", file.getName()));
+				Dialogue.showWarning(String.format("File=%s is not a valid gzipped file.", file.getName())).showAndWait();
 				return;
 			}
 
@@ -1205,6 +1205,70 @@ public final class StoreController implements Initializable {
 
 		});
 
+	}
+
+	@FXML
+	private void defragment() {
+		if (cache == null) {
+			Dialogue.showWarning("Load your cache first.").showAndWait();
+			return;
+		}
+
+		createTask(new Task<Boolean>() {
+
+			@Override
+			protected Boolean call() throws Exception {
+				try {
+					final File dir = new File("./defragmented_cache/");
+
+					if (!dir.exists()) {
+						dir.mkdirs();
+					}
+
+					final File dataFile = new File(dir, "main_file_cache.dat");
+
+					if (!dataFile.exists()) {
+						dataFile.createNewFile();
+					}
+
+					for (int i = 0; i < cache.getStoreCount(); i++) {
+						final File idxFile = new File(dir, "main_file_cache.idx" + i);
+
+						if (!idxFile.exists()) {
+							idxFile.createNewFile();
+						}
+					}
+
+					try(IndexedFileSystem nFs = IndexedFileSystem.init(dir.toPath())) {
+
+						final int stores = cache.getStoreCount();
+
+						for (int storeCount = 0; storeCount < stores; storeCount++) {
+
+							final FileStore fileStore = cache.getStore(storeCount);
+							final FileStore fileStoreCopy = nFs.getStore(storeCount);
+
+							final int files = fileStore.getFileCount();
+							for (int file = 0; file < files; file++) {
+								ByteBuffer buffer = fileStore.readFile(file);
+								fileStoreCopy.writeFile(file, buffer == null ? new byte[0] : buffer.array());
+
+								double progress = ((double) (storeCount + 1) / stores) * 100;
+
+								updateMessage(String.format("store= %d/%d file=%d/%d %.2f%%", storeCount + 1, stores, file + 1, files, progress));
+								updateProgress((storeCount + 1), stores);
+							}
+
+						}
+					}
+
+					Platform.runLater(() -> Dialogue.openDirectory("Would you like to view the defragmented cache?", dir));
+				} catch (IOException ex) {
+					Platform.runLater(() -> Dialogue.showException("Error while defragmenting cache.", ex).showAndWait());
+				}
+				return true;
+			}
+		});
 	}
 
 	@FXML
