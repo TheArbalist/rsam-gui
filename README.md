@@ -1,7 +1,7 @@
 # RS2 Asset Manager (RSAM)
 Is a tool designed to help you access and modify the 2005-2006 RuneScape file system
 
-## Stable release: 1.0.6
+## Stable release: 1.0.7
 [Download](https://github.com/nshusa/rsam-gui/releases/tag/1.0.6)
 
 ## Features
@@ -13,6 +13,7 @@ Is a tool designed to help you access and modify the 2005-2006 RuneScape file sy
 * Import and Export files
 * Rename files
 * Identify hashes
+* Defragmenting
 * Tons check it out
 
 ![image1](https://i.imgur.com/vanxiNy.png)

@@ -145,6 +145,9 @@
                            <HBox.margin>
                               <Insets right="5.0" top="5.0" />
                            </HBox.margin>
+                           <tooltip>
+                              <Tooltip text="Use this to rebuild your cache" />
+                           </tooltip>
                         </Button>
                         <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                            <children>

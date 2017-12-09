@@ -694,15 +694,9 @@ public final class ArchiveController implements Initializable {
 
 						byte[] fileData = Files.readAllBytes(selectedFile.toPath());
 
-						int hash = HashUtils.nameToHash(selectedFile.getName());
+						final int hash = HashUtils.nameToHash(selectedFile.getName());
 
 						AppData.commonHashNames.put(hash, selectedFile.getName());
-
-						int slot = archive.indexOf(entryWrapper.getHash());
-
-						if (slot == -1) {
-							return false;
-						}
 
 						ArchiveEntry toReplace = archive.getEntryAt(selectedIndex);
 
