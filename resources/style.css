@@ -67,6 +67,14 @@
 	-fx-background-color: #292929;
 }
 
+#defragBtn {
+	-fx-graphic: url('icons/defrag_24.png');
+}
+
+#defragBtn:hover {
+	-fx-background-color: #292929;
+}
+
 #loadBtn {
 	-fx-graphic: url('icons/load_icon.png');
 }

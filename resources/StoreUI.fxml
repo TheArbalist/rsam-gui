@@ -141,6 +141,11 @@
                               <Tooltip text="Use this button to rest the program." />
                            </tooltip>
                         </Button>
+                        <Button fx:id="defragBtn" mnemonicParsing="false" text="Defrag">
+                           <HBox.margin>
+                              <Insets right="5.0" top="5.0" />
+                           </HBox.margin>
+                        </Button>
                         <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                            <children>
                               <StackPane prefHeight="25.0" prefWidth="400.0" HBox.hgrow="NEVER">
