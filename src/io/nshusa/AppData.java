@@ -41,6 +41,8 @@ public final class AppData {
 
 	public static Image renameIcon16;
 
+	public static Image plus16Icon;
+
 	public static Image import16Icon;
 
 	public static Image openFolder16Icon;
@@ -88,6 +90,7 @@ public final class AppData {
 			view16Icon = new Image(App.class.getResourceAsStream("/icons/view_16.png"));
 			jag32Icon = new Image(App.class.getResourceAsStream("/icons/jag_32.png"));
 			checksum16Icon = new Image(App.class.getResourceAsStream("/icons/checksum_16.png"));
+			plus16Icon = new Image(App.class.getResourceAsStream("/icons/plus_16.png"));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			System.out.println("Failed to load icons.");

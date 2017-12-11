@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -23,11 +22,15 @@
    <left>
       <VBox BorderPane.alignment="CENTER">
          <children>
-            <ListView fx:id="listView" VBox.vgrow="ALWAYS">
+            <TableView fx:id="indexView" editable="true">
+              <columns>
+                <TableColumn fx:id="storeNameCol" prefWidth="187.0" resizable="false" text="Name" />
+                <TableColumn fx:id="storeIdCol" prefWidth="60.0" resizable="false" text="Index" />
+              </columns>
                <VBox.margin>
                   <Insets left="5.0" right="5.0" top="5.0" />
                </VBox.margin>
-            </ListView>
+            </TableView>
             <TextField fx:id="indexTf" alignment="CENTER" promptText="Search..." style="-fx-background-image: url('icons/search_icon.png'); -fx-background-repeat: no-repeat; -fx-background-position: left center;">
                <VBox.margin>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

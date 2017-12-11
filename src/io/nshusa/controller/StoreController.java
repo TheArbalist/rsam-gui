@@ -21,6 +21,7 @@ import io.nshusa.AppData;
 import io.nshusa.meta.ArchiveMeta;
 import io.nshusa.meta.StoreMeta;
 import io.nshusa.model.StoreEntryWrapper;
+import io.nshusa.model.StoreWrapper;
 import io.nshusa.rsam.FileStore;
 import io.nshusa.rsam.IndexedFileSystem;
 import io.nshusa.rsam.binary.Archive;
@@ -53,14 +54,20 @@ import javafx.util.Duration;
 public final class StoreController implements Initializable {
 
 	@FXML
-	private ListView<String> listView;
+	private TableView<StoreWrapper> indexView;
 
 	final ObservableList<StoreEntryWrapper> data = FXCollections.observableArrayList();
 
-	final ObservableList<String> indexes = FXCollections.observableArrayList();
+	final ObservableList<StoreWrapper> indexes = FXCollections.observableArrayList();
 
 	@FXML
 	private TableView<StoreEntryWrapper> tableView;
+
+	@FXML
+	private TableColumn<StoreWrapper, String> storeNameCol;
+
+	@FXML
+	private TableColumn<StoreWrapper, Integer> storeIdCol;
 
 	@FXML
 	private TableColumn<StoreEntryWrapper, Integer> idCol;
@@ -89,40 +96,15 @@ public final class StoreController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
+		storeNameCol.setCellValueFactory(it -> it.getValue().nameProperty());
+		storeIdCol.setCellValueFactory(it -> it.getValue().idProperty());
+
 		idCol.setCellValueFactory(cellData -> cellData.getValue().idProperty());
 		nameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
 		extCol.setCellValueFactory(cellData -> cellData.getValue().getExtensionProperty());
 		sizeCol.setCellValueFactory(cellData -> cellData.getValue().sizeProperty());
 		iconCol.setCellValueFactory(new PropertyValueFactory<>("image"));
 
-		listView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
-
-			final int selectedListRow = newSelection.intValue();
-
-			if (selectedListRow == -1) {
-				return;
-			}
-
-			ContextMenu context = new ContextMenu();
-
-			MenuItem importMI = new MenuItem("Import");
-			importMI.setGraphic(new ImageView(AppData.import16Icon));
-			importMI.setOnAction(e -> addEntry());
-
-			MenuItem renameMI = new MenuItem("Rename");
-			renameMI.setGraphic(new ImageView(AppData.renameIcon16));
-			renameMI.setOnAction(e -> renameStore());
-
-			MenuItem exportMI = new MenuItem("Export");
-			exportMI.setGraphic(new ImageView(AppData.saveIcon16));
-			exportMI.setOnAction(e -> exportFileStore());
-
-			context.getItems().addAll(importMI, renameMI, exportMI);
-
-			listView.setContextMenu(context);
-
-		});
-		
 		tableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			
 			final int selectedTableIndex = newSelection.intValue();
@@ -135,7 +117,7 @@ public final class StoreController implements Initializable {
 
 		});
 
-		listView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
+		indexView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 
 			data.clear();
 
@@ -153,30 +135,31 @@ public final class StoreController implements Initializable {
 
 		});
 
-		FilteredList<String> filteredIndexes = new FilteredList<>(indexes, p -> true);
+		FilteredList<StoreWrapper> filteredStoreList = new FilteredList<>(indexes, p -> true);
+		indexTf.textProperty().addListener((observable, oldValue, newValue) -> filteredStoreList.setPredicate(it -> {
+			if (newValue == null || newValue.isEmpty()) {
+				return true;
+			}
 
-		indexTf.textProperty().addListener((observable, oldValue, newValue) -> filteredIndexes.setPredicate(idx -> {
+			String lowerCaseFilter = newValue.toLowerCase();
 
-            if (newValue == null || newValue.isEmpty()) {
-                return true;
-            }
+			if (it.getName().toLowerCase().contains(lowerCaseFilter)) {
+				return true;
+			} else if (Integer.toString(it.getId()).contains(lowerCaseFilter)) {
+				return true;
+			}
+			return false;
+		}));
 
-            String lowerCaseFilter = newValue.toLowerCase();
+		SortedList<StoreWrapper> sortedStoreList = new SortedList<>(filteredStoreList);
+		sortedStoreList.comparatorProperty().bind(indexView.comparatorProperty());
 
-            if (idx.toLowerCase().contains(lowerCaseFilter)) {
-                return true;
-            } else if (idx.toLowerCase().contains(lowerCaseFilter)) {
-                return true;
-            }
-            return false;
-        }));
+		indexView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		indexView.setItems(sortedStoreList);
 
-		listView.setItems(filteredIndexes);
-		listView.setCellFactory(list -> new AttachmentListCell());
+		FilteredList<StoreEntryWrapper> filteredEntryData = new FilteredList<>(data, p -> true);
 
-		FilteredList<StoreEntryWrapper> filteredData = new FilteredList<>(data, p -> true);
-
-		fileTf.textProperty().addListener((observable, oldValue, newValue) -> filteredData.setPredicate(file -> {
+		fileTf.textProperty().addListener((observable, oldValue, newValue) -> filteredEntryData.setPredicate(file -> {
 
             if (newValue == null || newValue.isEmpty()) {
                 return true;
@@ -194,18 +177,18 @@ public final class StoreController implements Initializable {
             return false;
         }));
 
-		SortedList<StoreEntryWrapper> sortedData = new SortedList<>(filteredData);
-		sortedData.comparatorProperty().bind(tableView.comparatorProperty());
+		SortedList<StoreEntryWrapper> sortedEntryData = new SortedList<>(filteredEntryData);
+		sortedEntryData.comparatorProperty().bind(tableView.comparatorProperty());
 
 		tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		tableView.setItems(sortedData);
+		tableView.setItems(sortedEntryData);
 
 	}
 
 	private void buildTableViewContextMenu() {
 		final int selectedTableIndex = tableView.getSelectionModel().getSelectedIndex();
 
-		final int selectedListIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedListIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedListIndex == -1 || selectedTableIndex == -1) {
 			return;
@@ -470,18 +453,9 @@ public final class StoreController implements Initializable {
 	}
 
 	private void populateIndex() {
-
 		indexes.clear();
-
 		for (int i = 0; i < cache.getStoreCount(); i++) {
-
-			String name = AppData.storeNames.get(i);
-
-			if (name == null) {
-				name = String.format("index %d (unknown)", i);
-			}
-
-			indexes.add(String.format("index %d (%s)", i, name));
+			indexes.add(new StoreWrapper(i, AppData.storeNames.get(i)));
 		}
 	}
 
@@ -694,7 +668,7 @@ public final class StoreController implements Initializable {
 				return;
 			}
 
-			indexes.add(name);
+			indexes.add(new StoreWrapper(nextIndex, name));
 
 			AppData.storeNames.put(nextIndex, name);
 
@@ -735,16 +709,18 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void renameStore() {
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedIndex == -1) {
 			return;
 		}
 
+		final StoreWrapper selectedItem = indexView.getSelectionModel().getSelectedItem();
+
 		Optional<String> result = Dialogue.showInput("Enter a new name", "").showAndWait();
 
 		if (result.isPresent()) {
-			String name = result.get();
+			final String name = result.get();
 
 			if (name.isEmpty()) {
 				Dialogue.showWarning("Name cannot be empty").showAndWait();
@@ -753,6 +729,8 @@ public final class StoreController implements Initializable {
 				Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
 				return;
 			}
+
+			selectedItem.setName(name);
 
 			AppData.storeNames.put(selectedIndex, name);
 
@@ -768,9 +746,7 @@ public final class StoreController implements Initializable {
 					updateMessage(String.format("%.2f%s", progress, "%"));
 					updateProgress(1, 1);
 
-					Platform.runLater(() -> {
-						indexes.set(selectedIndex, name);
-					});
+					Platform.runLater(() -> indexes.set(selectedIndex, selectedItem));
 
 					return true;
 				}
@@ -782,7 +758,7 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void renameArchive() {
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedIndex == -1) {
 			return;
@@ -878,9 +854,10 @@ public final class StoreController implements Initializable {
 	@FXML
 	private void addEntry() {
 
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
-		if (selectedIndex == -1 || cache == null) {
+		if (selectedIndex == -1) {
+			Dialogue.showInfo("Info", "Load your cache first!");
 			return;
 		}
 
@@ -945,7 +922,7 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void removeEntry() {
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedIndex == -1 || cache == null) {
 			return;
@@ -999,7 +976,7 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void replaceEntry() {
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedIndex == -1 || cache == null) {
 			return;
@@ -1041,7 +1018,7 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void exportStoreEntries() {
-		final int selectedStoreIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedStoreIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedStoreIndex == -1) {
 			return;
@@ -1106,9 +1083,10 @@ public final class StoreController implements Initializable {
 	@FXML
 	private void exportFileStore() {
 
-		final int selectedStoreIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedStoreIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedStoreIndex == -1) {
+			Dialogue.showInfo("Info", "Load your cache first!");
 			return;
 		}
 
@@ -1166,7 +1144,7 @@ public final class StoreController implements Initializable {
 			return;
 		}
 
-		final int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
 
 		if (selectedIndex == -1) {
 			return;
