@@ -21,7 +21,6 @@ import io.nshusa.model.ArchiveWrapper;
 import io.nshusa.rsam.FileStore;
 import io.nshusa.rsam.IndexedFileSystem;
 import io.nshusa.rsam.binary.Archive;
-import io.nshusa.rsam.util.CompressionUtil;
 import io.nshusa.rsam.util.HashUtils;
 import io.nshusa.util.Dialogue;
 import io.nshusa.util.StringUtils;
@@ -40,7 +39,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import javafx.util.Duration;
 import io.nshusa.rsam.binary.Archive.ArchiveEntry;
 

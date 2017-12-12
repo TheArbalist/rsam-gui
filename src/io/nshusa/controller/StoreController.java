@@ -421,6 +421,7 @@ public final class StoreController implements Initializable {
 
 		try {
 			cache = IndexedFileSystem.init(selectedDirectory.toPath());
+			cache.load();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Dialogue.showWarning(String.format("Could not find cache at path=%s", selectedDirectory.toPath().toString())).showAndWait();
@@ -1190,53 +1191,10 @@ public final class StoreController implements Initializable {
 
 			@Override
 			protected Boolean call() throws Exception {
-				try {
-					final File dir = new File("./defragmented_cache/");
-
-					if (!dir.exists()) {
-						dir.mkdirs();
-					}
-
-					final File dataFile = new File(dir, "main_file_cache.dat");
-
-					if (!dataFile.exists()) {
-						dataFile.createNewFile();
-					}
-
-					for (int i = 0; i < cache.getStoreCount(); i++) {
-						final File idxFile = new File(dir, "main_file_cache.idx" + i);
-
-						if (!idxFile.exists()) {
-							idxFile.createNewFile();
-						}
-					}
-
-					try(IndexedFileSystem nFs = IndexedFileSystem.init(dir.toPath())) {
-
-						final int stores = cache.getStoreCount();
-
-						for (int storeCount = 0; storeCount < stores; storeCount++) {
-
-							final FileStore fileStore = cache.getStore(storeCount);
-							final FileStore fileStoreCopy = nFs.getStore(storeCount);
-
-							final int files = fileStore.getFileCount();
-							for (int file = 0; file < files; file++) {
-								ByteBuffer buffer = fileStore.readFile(file);
-								fileStoreCopy.writeFile(file, buffer == null ? new byte[0] : buffer.array());
-
-								double progress = ((double) (storeCount + 1) / stores) * 100;
-
-								updateMessage(String.format("store= %d/%d file=%d/%d %.2f%%", storeCount + 1, stores, file + 1, files, progress));
-								updateProgress((storeCount + 1), stores);
-							}
-
-						}
-					}
-
-					Platform.runLater(() -> Dialogue.openDirectory("Would you like to view the defragmented cache?", dir));
-				} catch (IOException ex) {
-					Platform.runLater(() -> Dialogue.showException("Error while defragmenting cache.", ex).showAndWait());
+				if (cache.defragment()) {
+					Platform.runLater(() -> Dialogue.showInfo("Info", "Successs!"));
+				} else {
+					Platform.runLater(() -> Dialogue.showWarning("Failed to defragment cache.").showAndWait());
 				}
 				return true;
 			}
