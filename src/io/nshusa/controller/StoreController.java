@@ -439,8 +439,10 @@ public final class StoreController implements Initializable {
 
 	private void populateIndex() {
 		indexes.clear();
-		for (int i = 0; i < cache.getStoreCount(); i++) {
-			indexes.add(new StoreWrapper(i, AppData.storeNames.get(i)));
+		for (int i = 0; i < 255; i++) {
+			if (Files.exists(cache.getRoot().resolve("main_file_cache.idx" + i))) {
+				indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
+			}
 		}
 	}
 
@@ -640,10 +642,7 @@ public final class StoreController implements Initializable {
 			return;
 		}
 
-		boolean loaded = true;
-
 		if (!cache.isLoaded()) {
-			loaded = false;
 			cache.load();
 		}
 
@@ -666,13 +665,11 @@ public final class StoreController implements Initializable {
 
 		AppData.storeNames.put(nextIndex, name);
 
-			if (loaded) {
-				indexes.add(new StoreWrapper(nextIndex, name));
-			} else {
-				for (int i = 0; i < cache.getStoreCount(); i++) {
-					indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
-				}
-			}
+		indexes.clear();
+
+		for (int i = 0; i < cache.getStoreCount(); i++) {
+			indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
+		}
 
 			createTask(new Task<Boolean>() {
 
@@ -680,6 +677,8 @@ public final class StoreController implements Initializable {
 				protected Boolean call() throws Exception {
 
 					saveStoreMeta();
+
+					cache.reset();
 
 					double progress = 100.00;
 
