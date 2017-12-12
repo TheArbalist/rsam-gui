@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +84,7 @@ public final class StoreController implements Initializable {
 
 	private double xOffset, yOffset;
 
-	private IndexedFileSystem cache;
+	private IndexedFileSystem cache = IndexedFileSystem.init(Paths.get("cache"));
 
 	private Stage stage;
 
@@ -630,7 +631,9 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private void createStore() {
-		if (cache == null) {
+		Optional<String> result = Dialogue.showInput("Enter a name").showAndWait();
+
+		if (!result.isPresent()) {
 			return;
 		}
 
@@ -643,29 +646,39 @@ public final class StoreController implements Initializable {
 			return;
 		}
 
+		boolean loaded = true;
+
+		if (!cache.isLoaded()) {
+			loaded = false;
+			cache.load();
+		}
+
 		final FileStore store = cache.getStore(nextIndex);
 
 		if (store == null) {
 			return;
 		}
 
-		Optional<String> result = Dialogue.showInput("Name this store").showAndWait();
-
-		if (result.isPresent()) {
-
 			String name = result.get();
 
 			if (name.isEmpty()) {
-				Dialogue.showWarning("Name cannot be empty").showAndWait();
-				return;
-			} else if (name.length() >= 20) {
-				Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
 				return;
 			}
 
-			indexes.add(new StoreWrapper(nextIndex, name));
+			if (name.length() >= 20) {
+				Dialogue.showWarning("Name cannot be more than 20 characters.").showAndWait();
+				return;
+			}
 
-			AppData.storeNames.put(nextIndex, name);
+		AppData.storeNames.put(nextIndex, name);
+
+			if (loaded) {
+				indexes.add(new StoreWrapper(nextIndex, name));
+			} else {
+				for (int i = 0; i < cache.getStoreCount(); i++) {
+					indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
+				}
+			}
 
 			createTask(new Task<Boolean>() {
 
@@ -683,8 +696,6 @@ public final class StoreController implements Initializable {
 				}
 
 			});
-
-		}
 
 	}
 
