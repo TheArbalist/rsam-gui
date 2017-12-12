@@ -35,6 +35,8 @@
                       <MenuItem mnemonicParsing="false" onAction="#createStore" text="Create" />
                         <MenuItem mnemonicParsing="false" onAction="#removeStore" text="Remove" />
                         <MenuItem mnemonicParsing="false" onAction="#renameStore" text="Rename" />
+                        <MenuItem mnemonicParsing="false" onAction="#addEntry" text="Import" />
+                        <MenuItem mnemonicParsing="false" text="Export" />
                     </items>
                   </ContextMenu>
                </contextMenu>

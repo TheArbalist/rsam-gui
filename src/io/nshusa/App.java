@@ -419,6 +419,10 @@ public class App extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                MiscUtils.saveStoreMeta();
+                MiscUtils.saveStoreMeta();
+        }));
 	}
 
 	public static Stage getStage() {

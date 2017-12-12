@@ -676,8 +676,6 @@ public final class StoreController implements Initializable {
 				@Override
 				protected Boolean call() throws Exception {
 
-					saveStoreMeta();
-
 					cache.reset();
 
 					double progress = 100.00;
@@ -712,19 +710,7 @@ public final class StoreController implements Initializable {
 		}, true);
 	}
 
-	private synchronized void saveStoreMeta() {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(AppData.RESOURCE_PATH.toFile(), "stores.json")))) {
-			List<StoreMeta> meta = new ArrayList<>();
 
-			AppData.storeNames.entrySet().forEach(it -> meta.add(new StoreMeta(it.getKey(), it.getValue())));
-
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-			writer.write(gson.toJson(meta));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	@FXML
 	private void renameStore() {
@@ -760,8 +746,6 @@ public final class StoreController implements Initializable {
 
 			@Override
 			protected Boolean call() throws Exception {
-
-				saveStoreMeta();
 
 				double progress = 100.00;
 
@@ -839,8 +823,6 @@ public final class StoreController implements Initializable {
 				@Override
 				protected Boolean call() throws Exception {
 
-					saveArchiveMeta();
-
 					FileStore store = cache.getStore(selectedIndex);
 
 					final ByteBuffer fileBuffer = store.readFile(selectedEntry);
@@ -856,19 +838,6 @@ public final class StoreController implements Initializable {
 
 			}, true);
 
-	}
-
-	private synchronized void saveArchiveMeta() {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(AppData.RESOURCE_PATH.resolve("archives.json").toFile()))) {
-
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-			List<ArchiveMeta> metas = new ArrayList<>(AppData.archiveMetas.values());
-
-			writer.write(gson.toJson(metas));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	@FXML
@@ -887,17 +856,8 @@ public final class StoreController implements Initializable {
 			return;
 		}
 
-		for (File file : files) {
-			if (!file.getName().endsWith(".gz")) {
-				Dialogue.showWarning("You can only select gzipped files.").showAndWait();
-				return;
-			}
-
-			if (!GZipUtils.isGZipped(file)) {
-				Dialogue.showWarning(String.format("File=%s is not a valid gzipped file.", file.getName())).showAndWait();
-				return;
-			}
-
+		if (!cache.isLoaded()) {
+			cache.load();
 		}
 
 		createTask(new Task<Boolean>() {
