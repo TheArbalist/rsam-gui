@@ -736,43 +736,44 @@ public final class StoreController implements Initializable {
 
 		final StoreWrapper selectedItem = indexView.getSelectionModel().getSelectedItem();
 
-		Optional<String> result = Dialogue.showInput("Enter a new name", "").showAndWait();
+		Optional<String> result = Dialogue.showInput("Enter a new name").showAndWait();
 
-		if (result.isPresent()) {
-			final String name = result.get();
+		if (!result.isPresent()) {
+			return;
+		}
 
-			if (name.isEmpty()) {
-				Dialogue.showWarning("Name cannot be empty").showAndWait();
-				return;
-			} else if (name.length() >= 20) {
-				Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
-				return;
+		final String name = result.get();
+
+		if (name.isEmpty()) {
+			Dialogue.showWarning("Name cannot be empty").showAndWait();
+			return;
+		} else if (name.length() >= 20) {
+			Dialogue.showWarning("Name must be shorter than 20 characters").showAndWait();
+			return;
+		}
+
+		selectedItem.setName(name);
+
+		AppData.storeNames.put(selectedIndex, name);
+
+		createTask(new Task<Boolean>() {
+
+			@Override
+			protected Boolean call() throws Exception {
+
+				saveStoreMeta();
+
+				double progress = 100.00;
+
+				updateMessage(String.format("%.2f%s", progress, "%"));
+				updateProgress(1, 1);
+
+				Platform.runLater(() -> indexes.set(selectedIndex, selectedItem));
+
+				return true;
 			}
 
-			selectedItem.setName(name);
-
-			AppData.storeNames.put(selectedIndex, name);
-
-			createTask(new Task<Boolean>() {
-
-				@Override
-				protected Boolean call() throws Exception {
-
-					saveStoreMeta();
-
-					double progress = 100.00;
-
-					updateMessage(String.format("%.2f%s", progress, "%"));
-					updateProgress(1, 1);
-
-					Platform.runLater(() -> indexes.set(selectedIndex, selectedItem));
-
-					return true;
-				}
-
-			}, true);
-
-		}
+		}, true);
 	}
 
 	@FXML
