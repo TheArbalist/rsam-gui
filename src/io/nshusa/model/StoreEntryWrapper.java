@@ -12,11 +12,11 @@ public class StoreEntryWrapper {
 	private ObservableValue<Integer> id;
 	
 	private SimpleStringProperty name;
-	
+
 	private SimpleStringProperty extension;
-	
+
 	private ObservableValue<String> size;
-	
+
 	private ImageView image;
 	
 	public StoreEntryWrapper(int id, String name, String extension, int size) {
@@ -42,11 +42,11 @@ public class StoreEntryWrapper {
 	public String getName() {
 		return name.get();
 	}
-	
+
 	public SimpleStringProperty getExtensionProperty() {
 		return extension;
 	}
-	
+
 	public String getExtension() {
 		return extension.get();
 	}
@@ -54,11 +54,11 @@ public class StoreEntryWrapper {
 	public String getSize() {
 		return size.getValue();
 	}
-	
+
 	public void setIcon(ImageView icon) {
 		this.image = icon;
 	}
-	
+
 	public ImageView getImage() {
 		return image;
 	}

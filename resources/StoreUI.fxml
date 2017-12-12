@@ -25,7 +25,7 @@
             <TableView fx:id="indexView" editable="true">
               <columns>
                 <TableColumn fx:id="storeNameCol" prefWidth="187.0" resizable="false" text="Name" />
-                <TableColumn fx:id="storeIdCol" prefWidth="60.0" resizable="false" text="Index" />
+                <TableColumn fx:id="storeIdCol" editable="false" prefWidth="60.0" resizable="false" text="Index" />
               </columns>
                <VBox.margin>
                   <Insets left="5.0" right="5.0" top="5.0" />
@@ -45,13 +45,11 @@
    <center>
       <VBox BorderPane.alignment="TOP_CENTER">
          <children>
-            <TableView fx:id="tableView" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tableView" editable="true" VBox.vgrow="ALWAYS">
               <columns>
-                  <TableColumn fx:id="iconCol" prefWidth="45.0" text="Icon" />
-                <TableColumn fx:id="idCol" prefWidth="75.0" text="Id" />
-                <TableColumn fx:id="nameCol" minWidth="100.0" prefWidth="100.0" text="Name" />
-                  <TableColumn fx:id="extCol" prefWidth="107.0" text="Extension" />
-                  <TableColumn fx:id="sizeCol" prefWidth="91.0" text="Size" />
+                <TableColumn fx:id="idCol" editable="false" minWidth="-1.0" prefWidth="-1.0" text="Id" />
+                <TableColumn fx:id="nameCol" minWidth="-1.0" prefWidth="-1.0" text="Name" />
+                  <TableColumn fx:id="sizeCol" editable="false" minWidth="-1.0" prefWidth="-1.0" text="Size" />
               </columns>
                <VBox.margin>
                   <Insets right="5.0" top="5.0" />

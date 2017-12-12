@@ -5,13 +5,10 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -73,10 +70,7 @@ public final class StoreController implements Initializable {
 	private TableColumn<StoreEntryWrapper, Integer> idCol;
 
 	@FXML
-	private TableColumn<StoreEntryWrapper, String> nameCol, extCol, sizeCol;
-
-	@FXML
-	private TableColumn<StoreEntryWrapper, ImageView> iconCol;
+	private TableColumn<StoreEntryWrapper, String> nameCol, sizeCol;
 
 	@FXML
 	private TextField fileTf, indexTf;
@@ -101,9 +95,7 @@ public final class StoreController implements Initializable {
 
 		idCol.setCellValueFactory(cellData -> cellData.getValue().idProperty());
 		nameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-		extCol.setCellValueFactory(cellData -> cellData.getValue().getExtensionProperty());
 		sizeCol.setCellValueFactory(cellData -> cellData.getValue().sizeProperty());
-		iconCol.setCellValueFactory(new PropertyValueFactory<>("image"));
 
 		tableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			
@@ -153,6 +145,8 @@ public final class StoreController implements Initializable {
 
 		SortedList<StoreWrapper> sortedStoreList = new SortedList<>(filteredStoreList);
 		sortedStoreList.comparatorProperty().bind(indexView.comparatorProperty());
+
+		indexView.setColumnResizePolicy(p -> true);
 
 		indexView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		indexView.setItems(sortedStoreList);
@@ -504,7 +498,7 @@ public final class StoreController implements Initializable {
 
 						storeWrappers.add(new StoreEntryWrapper(i, displayName, meta.getExtension(), bytes.length));
 					} else {
-						storeWrappers.add(new StoreEntryWrapper(i, Integer.toString(i), gzipped ? "gz" : bytes.length == 0 ? "empty" : Integer.toString(i) , bytes.length));
+						storeWrappers.add(new StoreEntryWrapper(i, "none", gzipped ? "gz" : bytes.length == 0 ? "empty" : Integer.toString(i) , bytes.length));
 					}
 
 					double progress = ((double) (i + 1) / entries) * 100;
