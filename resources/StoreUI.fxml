@@ -7,7 +7,6 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -17,7 +16,6 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 
 <BorderPane minHeight="504.0" minWidth="763.0" onMouseDragged="#handleMouseDragged" onMousePressed="#handleMousePressed" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.nshusa.controller.StoreController">
    <left>
@@ -35,6 +33,7 @@
                   <ContextMenu>
                     <items>
                       <MenuItem mnemonicParsing="false" onAction="#createStore" text="Create" />
+                        <MenuItem mnemonicParsing="false" onAction="#removeStore" text="Remove" />
                     </items>
                   </ContextMenu>
                </contextMenu>
@@ -158,26 +157,6 @@
                               <Tooltip text="Use this to rebuild your cache" />
                            </tooltip>
                         </Button>
-                        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                           <children>
-                              <StackPane prefHeight="25.0" prefWidth="400.0" HBox.hgrow="NEVER">
-                                 <children>
-                                    <ProgressBar fx:id="progressBar" onMouseDragged="#handleMouseDragged" onMousePressed="#handleMousePressed" prefHeight="40.0" prefWidth="482.0" progress="0.0" visible="false" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets right="5.0" top="5.0" />
-                                       </HBox.margin>
-                                    </ProgressBar>
-                                    <Text fx:id="progressText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" />
-                                 </children>
-                                 <HBox.margin>
-                                    <Insets />
-                                 </HBox.margin>
-                              </StackPane>
-                           </children>
-                           <HBox.margin>
-                              <Insets right="5.0" />
-                           </HBox.margin>
-                        </HBox>
                      </children>
                   </HBox>
                </children>

@@ -39,14 +39,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Callback;
 import javafx.util.Duration;
 
 public final class StoreController implements Initializable {
@@ -75,12 +73,6 @@ public final class StoreController implements Initializable {
 
 	@FXML
 	private TextField fileTf, indexTf;
-
-	@FXML
-	private Text progressText;
-
-	@FXML
-	private ProgressBar progressBar;
 
 	private double xOffset, yOffset;
 
@@ -112,8 +104,6 @@ public final class StoreController implements Initializable {
 
 		indexView.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 
-			data.clear();
-
 			final int selectedIndex = newSelection.intValue();
 
 			if (selectedIndex < 0) {
@@ -123,6 +113,8 @@ public final class StoreController implements Initializable {
 			if (cache == null) {
 				return;
 			}
+
+			data.clear();
 
 			populateTable(selectedIndex);
 
@@ -388,9 +380,7 @@ public final class StoreController implements Initializable {
 				}
 				return null;
 			}
-		});
-
-
+		}, false);
 
 	}
 
@@ -433,7 +423,6 @@ public final class StoreController implements Initializable {
 
 			@Override
 			protected Boolean call() throws Exception {
-
 				Platform.runLater(() -> populateIndex());
 
 				double progress = 100.00;
@@ -444,7 +433,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, true);
 
 	}
 
@@ -456,7 +445,7 @@ public final class StoreController implements Initializable {
 	}
 
 	private void populateTable(int storeId) {
-		if (cache == null) {
+		if (!cache.isLoaded()) {
 			return;
 		}
 
@@ -466,19 +455,24 @@ public final class StoreController implements Initializable {
 
 		data.clear();
 
+		FileStore store = cache.getStore(storeId);
+
+		if (store == null) {
+			return;
+		}
+
+		final List<StoreEntryWrapper> storeWrappers = new ArrayList<>();
+
+		final int entries = store.getFileCount();
+
+		if (entries <= 0) {
+			return;
+		}
+
 		createTask(new Task<Boolean>() {
 
 			@Override
 			protected Boolean call() throws Exception {
-				FileStore store = cache.getStore(storeId);
-
-				if (store == null) {
-					return false;
-				}
-
-				final List<StoreEntryWrapper> storeWrappers = new ArrayList<>();
-
-				int entries = store.getFileCount();
 
 				for (int i = 0; i < entries; i++) {
 
@@ -514,7 +508,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, false);
 
 	}
 
@@ -695,8 +689,28 @@ public final class StoreController implements Initializable {
 					return true;
 				}
 
-			});
+			}, true);
 
+	}
+
+	@FXML
+	private void removeStore() {
+		final int selectedIndex = indexView.getSelectionModel().getSelectedIndex();
+
+		if (selectedIndex == -1) {
+			return;
+		}
+
+		createTask(new Task<Boolean>() {
+
+			@Override
+			protected Boolean call() throws Exception {
+				cache.removeStore(indexView.getSelectionModel().getSelectedItem().getId());
+				cache.reset();
+				Platform.runLater(() ->indexes.remove(selectedIndex));
+				return true;
+			}
+		}, true);
 	}
 
 	private synchronized void saveStoreMeta() {
@@ -757,7 +771,7 @@ public final class StoreController implements Initializable {
 					return true;
 				}
 
-			});
+			}, true);
 
 		}
 	}
@@ -840,7 +854,7 @@ public final class StoreController implements Initializable {
 					return true;
 				}
 
-			});
+			}, true);
 
 	}
 
@@ -922,7 +936,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, true);
 
 	}
 
@@ -970,13 +984,11 @@ public final class StoreController implements Initializable {
 				updateMessage(String.format("%.2f%s", progress, "%"));
 				updateProgress(1, 1);
 
-				Platform.runLater(() -> {
-					populateTable(selectedIndex);
-				});
+				Platform.runLater(() -> populateTable(selectedIndex));
 				return true;
 			}
 
-		});
+		}, true);
 
 	}
 
@@ -1019,7 +1031,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, true);
 	}
 
 	@FXML
@@ -1083,7 +1095,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, false);
 	}
 
 	@FXML
@@ -1140,7 +1152,7 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, false);
 
 	}
 
@@ -1187,13 +1199,13 @@ public final class StoreController implements Initializable {
 				return true;
 			}
 
-		});
+		}, true);
 
 	}
 
 	@FXML
 	private void defragment() {
-		if (cache == null) {
+		if (!cache.isLoaded()) {
 			Dialogue.showWarning("Load your cache first.").showAndWait();
 			return;
 		}
@@ -1202,14 +1214,12 @@ public final class StoreController implements Initializable {
 
 			@Override
 			protected Boolean call() throws Exception {
-				if (cache.defragment()) {
-					Platform.runLater(() -> Dialogue.showInfo("Info", "Successs!"));
-				} else {
+				if (!cache.defragment()) {
 					Platform.runLater(() -> Dialogue.showWarning("Failed to defragment cache.").showAndWait());
 				}
 				return true;
 			}
-		});
+		}, true);
 	}
 
 	@FXML
@@ -1282,15 +1292,7 @@ public final class StoreController implements Initializable {
 	private void clearProgram() {
 		indexes.clear();
 		data.clear();
-
-		try {
-			if (cache == null) {
-				return;
-			}
-			cache.close();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		cache.reset();
 	}
 
 	@FXML
@@ -1307,44 +1309,14 @@ public final class StoreController implements Initializable {
 		stage.close();
 	}
 
-	private void createTask(Task<?> task) {
-
-		progressBar.setVisible(true);
-
-		progressBar.progressProperty().unbind();
-		progressBar.progressProperty().bind(task.progressProperty());
-
-		progressText.textProperty().unbind();
-		progressText.textProperty().bind(task.messageProperty());
-
+	private void createTask(Task<?> task, boolean showDialogue) {
 		new Thread(task).start();
 
-		task.setOnSucceeded(e -> {
+		if (showDialogue) {
+			task.setOnSucceeded(e -> Dialogue.showInfo("Info", "Success!"));
+			task.setOnFailed(e -> Dialogue.showWarning("Failed!").showAndWait());
+		}
 
-			PauseTransition pause = new PauseTransition(Duration.seconds(1));
-
-			pause.setOnFinished(event -> {
-				progressBar.setVisible(false);
-				progressText.textProperty().unbind();
-				progressText.setText("");
-			});
-
-			pause.play();
-		});
-
-		task.setOnFailed(e -> {
-
-			PauseTransition pause = new PauseTransition(Duration.seconds(1));
-
-			pause.setOnFinished(event -> {
-				progressBar.setVisible(false);
-				progressText.textProperty().unbind();
-				progressText.setText("");
-			});
-
-			pause.play();
-
-		});
 	}
 
 	public void setStage(Stage stage) {
