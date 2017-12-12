@@ -441,7 +441,7 @@ public final class StoreController implements Initializable {
 		indexes.clear();
 		for (int i = 0; i < 255; i++) {
 			if (Files.exists(cache.getRoot().resolve("main_file_cache.idx" + i))) {
-				indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
+				indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, new StoreMeta(i, "unknown")).getName()));
 			}
 		}
 	}
@@ -476,6 +476,8 @@ public final class StoreController implements Initializable {
 			@Override
 			protected Boolean call() throws Exception {
 
+				StoreMeta storeMeta = AppData.storeNames.getOrDefault(storeId, new StoreMeta(storeId, "unknown"));
+
 				for (int i = 0; i < entries; i++) {
 
 					ByteBuffer fileBuffer = store.readFile(i);
@@ -486,18 +488,9 @@ public final class StoreController implements Initializable {
 
 					byte[] bytes= fileBuffer.array();
 
-					boolean gzipped = GZipUtils.isGZipped(bytes);
+					String fileName = storeMeta.getFileName(i);
 
-					if (storeId == 0) {
-						
-						ArchiveMeta meta = AppData.archiveMetas.get(i);
-
-						String displayName = meta == null ? "unknown" : meta.getDisplayName();
-
-						storeWrappers.add(new StoreEntryWrapper(i, displayName, meta.getExtension(), bytes.length));
-					} else {
-						storeWrappers.add(new StoreEntryWrapper(i, "none", gzipped ? "gz" : bytes.length == 0 ? "empty" : Integer.toString(i) , bytes.length));
-					}
+					storeWrappers.add(new StoreEntryWrapper(i, fileName, "", bytes.length));
 
 					double progress = ((double) (i + 1) / entries) * 100;
 
@@ -663,12 +656,12 @@ public final class StoreController implements Initializable {
 				return;
 			}
 
-		AppData.storeNames.put(nextIndex, name);
+		AppData.storeNames.put(nextIndex, new StoreMeta(nextIndex, name));
 
 		indexes.clear();
 
 		for (int i = 0; i < cache.getStoreCount(); i++) {
-			indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, "unknown")));
+			indexes.add(new StoreWrapper(i, AppData.storeNames.getOrDefault(i, new StoreMeta(i, "unknown")).getName()));
 		}
 
 			createTask(new Task<Boolean>() {
@@ -740,7 +733,12 @@ public final class StoreController implements Initializable {
 
 		selectedItem.setName(name);
 
-		AppData.storeNames.put(selectedIndex, name);
+		StoreMeta storeMeta = AppData.storeNames.getOrDefault(selectedIndex, new StoreMeta(selectedIndex, Integer.toString(selectedIndex)));
+		storeMeta.setName(name);
+
+		if (!AppData.storeNames.containsKey(selectedIndex)) {
+			AppData.storeNames.put(selectedIndex, storeMeta);
+		}
 
 		createTask(new Task<Boolean>() {
 

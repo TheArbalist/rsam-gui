@@ -100,7 +100,18 @@ public class App extends Application {
 
             if (!Files.exists(AppData.RESOURCE_PATH.resolve("stores.json"))) {
 
-                List<StoreMeta> meta = Arrays.asList(new StoreMeta(0, "archive"),
+                final StoreMeta archiveMeta = new StoreMeta(0, "archive");
+                archiveMeta.entries.put(0, "empty");
+                archiveMeta.entries.put(1, "title");
+                archiveMeta.entries.put(2, "config");
+                archiveMeta.entries.put(3, "interface");
+                archiveMeta.entries.put(4, "media");
+                archiveMeta.entries.put(5, "versionlist");
+                archiveMeta.entries.put(6, "texture");
+                archiveMeta.entries.put(7, "wordenc");
+                archiveMeta.entries.put(8, "sound");
+
+                final List<StoreMeta> meta = Arrays.asList(archiveMeta,
                         new StoreMeta(1, "model"),
                         new StoreMeta(2, "animation"),
                         new StoreMeta(3, "music"),
@@ -121,9 +132,7 @@ public class App extends Application {
 
                 List<StoreMeta> meta = Arrays.asList(gson.fromJson(reader, StoreMeta[].class));
 
-                meta.stream().forEach(it -> AppData.storeNames.put(it.getId(), it.getName()));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                meta.forEach(it -> AppData.storeNames.put(it.getId(), it));
             } catch (IOException e) {
                 e.printStackTrace();
             }

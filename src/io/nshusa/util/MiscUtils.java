@@ -22,13 +22,8 @@ public final class MiscUtils {
 
     public static void saveStoreMeta() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(AppData.RESOURCE_PATH.toFile(), "stores.json")))) {
-            final List<StoreMeta> meta = new ArrayList<>();
-
-            AppData.storeNames.forEach((key, value) -> meta.add(new StoreMeta(key, value)));
-
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-            writer.write(gson.toJson(meta));
+            writer.write(gson.toJson(AppData.storeNames.values()));
         } catch (IOException e) {
             e.printStackTrace();
         }
